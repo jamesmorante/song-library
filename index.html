@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Song Library</title>
+  <title>Song Library (Hybrid)</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f9f9f9; }
     header { text-align:center; margin-bottom:30px; }
@@ -19,76 +19,67 @@
 <body>
   <header>
     <h1>🎸 My Song Library</h1>
-    <p>Five songs, each with its own search and transpose controls</p>
+    <p>Search your songs or fetch new ones from Songsterr</p>
+    <input type="text" id="globalSearch" placeholder="Search song..." onkeyup="searchSong()">
   </header>
 
-  <!-- Song Template -->
-  <div class="song" id="song1">
-    <h2>Amazing Grace</h2>
-    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song1', this.value)">
-    <br>
-    <button onclick="transpose('song1', 1)">Transpose Up</button>
-    <button onclick="transpose('song1', -1)">Transpose Down</button>
-    <div class="lyrics">
-[<span class="chord">C</span>] Amazing grace, how sweet the sound  
-That saved a wretch like me  
-[<span class="chord">F</span>] I once was lost, but now am found  
-[<span class="chord">C</span>] Was blind, but now I see
-    </div>
-  </div>
-
-  <div class="song" id="song2">
-    <h2>Sample Song</h2>
-    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song2', this.value)">
-    <br>
-    <button onclick="transpose('song2', 1)">Transpose Up</button>
-    <button onclick="transpose('song2', -1)">Transpose Down</button>
-    <div class="lyrics">
-[<span class="chord">G</span>] This is a sample line  
-[<span class="chord">D</span>] Another chorded lyric  
-[<span class="chord">Em</span>] Keep adding your own songs here
-    </div>
-  </div>
-
-  <!-- Add three more songs in the same format -->
-  <div class="song" id="song3">
-    <h2>Song Three</h2>
-    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song3', this.value)">
-    <br>
-    <button onclick="transpose('song3', 1)">Transpose Up</button>
-    <button onclick="transpose('song3', -1)">Transpose Down</button>
-    <div class="lyrics">
-[<span class="chord">Am</span>] Example lyrics line  
-[<span class="chord">F</span>] Another chord line
-    </div>
-  </div>
-
-  <div class="song" id="song4">
-    <h2>Song Four</h2>
-    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song4', this.value)">
-    <br>
-    <button onclick="transpose('song4', 1)">Transpose Up</button>
-    <button onclick="transpose('song4', -1)">Transpose Down</button>
-    <div class="lyrics">
-[<span class="chord">E</span>] Example lyric line  
-[<span class="chord">B</span>] Another chord line
-    </div>
-  </div>
-
-  <div class="song" id="song5">
-    <h2>Song Five</h2>
-    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song5', this.value)">
-    <br>
-    <button onclick="transpose('song5', 1)">Transpose Up</button>
-    <button onclick="transpose('song5', -1)">Transpose Down</button>
-    <div class="lyrics">
-[<span class="chord">D</span>] Example lyric line  
-[<span class="chord">A</span>] Another chord line
-    </div>
-  </div>
+  <div id="songs"></div>
 
   <script>
+    // Local songs
+    const localSongs = [
+      {
+        title: "Amazing Grace",
+        lyrics: `[<span class="chord">C</span>] Amazing grace, how sweet the sound  
+That saved a wretch like me  
+[<span class="chord">F</span>] I once was lost, but now am found  
+[<span class="chord">C</span>] Was blind, but now I see`
+      },
+      {
+        title: "Sample Song",
+        lyrics: `[<span class="chord">G</span>] This is a sample line  
+[<span class="chord">D</span>] Another chorded lyric  
+[<span class="chord">Em</span>] Keep adding your own songs here`
+      },
+      {
+        title: "Song Three",
+        lyrics: `[<span class="chord">Am</span>] Example lyrics line  
+[<span class="chord">F</span>] Another chord line`
+      },
+      {
+        title: "Song Four",
+        lyrics: `[<span class="chord">E</span>] Example lyric line  
+[<span class="chord">B</span>] Another chord line`
+      },
+      {
+        title: "Song Five",
+        lyrics: `[<span class="chord">D</span>] Example lyric line  
+[<span class="chord">A</span>] Another chord line`
+      }
+    ];
+
     const chords = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+    function renderSongs(list) {
+      const container = document.getElementById("songs");
+      container.innerHTML = "";
+      list.forEach((song, index) => {
+        const songDiv = document.createElement("div");
+        songDiv.className = "song";
+        songDiv.id = "song" + index;
+        songDiv.innerHTML = `
+          <h2>${song.title}</h2>
+          <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song${index}', this.value)">
+          <br>
+          <button onclick="transpose('song${index}', 1)">Transpose Up</button>
+          <button onclick="transpose('song${index}', -1)">Transpose Down</button>
+          <div class="lyrics">${song.lyrics || ""}</div>`;
+        container.appendChild(songDiv);
+      });
+    }
+
+    // Initial render
+    renderSongs(localSongs);
 
     function transpose(songId, step) {
       const lyricsEl = document.querySelector(`#${songId} .lyrics`);
@@ -113,6 +104,32 @@ That saved a wretch like me
 
 /g, '<span class="chord">$1</span>'))
         .join("\n");
+    }
+
+    async function searchSong() {
+      const query = document.getElementById("globalSearch").value.toLowerCase();
+      if (!query) { renderSongs(localSongs); return; }
+
+      // First check local songs
+      const filtered = localSongs.filter(song => song.title.toLowerCase().includes(query));
+      if (filtered.length > 0) {
+        renderSongs(filtered);
+        return;
+      }
+
+      // If not found locally, query Songsterr API
+      const response = await fetch(`https://www.songsterr.com/a/ra/songs.json?pattern=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      const container = document.getElementById("songs");
+      container.innerHTML = "";
+      data.forEach(song => {
+        const songDiv = document.createElement("div");
+        songDiv.className = "song";
+        songDiv.innerHTML = `<h2>${song.title} — ${song.artist.name}</h2>
+          <p>Tab available on Songsterr</p>
+          <a href="https://www.songsterr.com/a/wsa/${song.title}-tab-s${song.id}" target="_blank">View Tab</a>`;
+        container.appendChild(songDiv);
+      });
     }
   </script>
 </body>
