@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Song Library</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f9f9f9; }
+    header { text-align:center; margin-bottom:30px; }
+    h1 { margin:0; }
+    .song { background:#fff; padding:20px; margin-bottom:30px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .song h2 { margin-top:0; }
+    input[type="text"] { padding:8px; width:80%; font-size:14px; margin:10px 0; }
+    button { margin:5px; padding:8px 15px; font-size:14px; cursor:pointer; }
+    .lyrics { white-space:pre-wrap; font-size:16px; line-height:1.6; }
+    .chord { font-weight:bold; color:#2a5; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎸 My Song Library</h1>
+    <p>Five songs, each with its own search and transpose controls</p>
+  </header>
+
+  <!-- Song Template -->
+  <div class="song" id="song1">
+    <h2>Amazing Grace</h2>
+    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song1', this.value)">
+    <br>
+    <button onclick="transpose('song1', 1)">Transpose Up</button>
+    <button onclick="transpose('song1', -1)">Transpose Down</button>
+    <div class="lyrics">
+[<span class="chord">C</span>] Amazing grace, how sweet the sound  
+That saved a wretch like me  
+[<span class="chord">F</span>] I once was lost, but now am found  
+[<span class="chord">C</span>] Was blind, but now I see
+    </div>
+  </div>
+
+  <div class="song" id="song2">
+    <h2>Sample Song</h2>
+    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song2', this.value)">
+    <br>
+    <button onclick="transpose('song2', 1)">Transpose Up</button>
+    <button onclick="transpose('song2', -1)">Transpose Down</button>
+    <div class="lyrics">
+[<span class="chord">G</span>] This is a sample line  
+[<span class="chord">D</span>] Another chorded lyric  
+[<span class="chord">Em</span>] Keep adding your own songs here
+    </div>
+  </div>
+
+  <!-- Add three more songs in the same format -->
+  <div class="song" id="song3">
+    <h2>Song Three</h2>
+    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song3', this.value)">
+    <br>
+    <button onclick="transpose('song3', 1)">Transpose Up</button>
+    <button onclick="transpose('song3', -1)">Transpose Down</button>
+    <div class="lyrics">
+[<span class="chord">Am</span>] Example lyrics line  
+[<span class="chord">F</span>] Another chord line
+    </div>
+  </div>
+
+  <div class="song" id="song4">
+    <h2>Song Four</h2>
+    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song4', this.value)">
+    <br>
+    <button onclick="transpose('song4', 1)">Transpose Up</button>
+    <button onclick="transpose('song4', -1)">Transpose Down</button>
+    <div class="lyrics">
+[<span class="chord">E</span>] Example lyric line  
+[<span class="chord">B</span>] Another chord line
+    </div>
+  </div>
+
+  <div class="song" id="song5">
+    <h2>Song Five</h2>
+    <input type="text" placeholder="Search within lyrics..." onkeyup="filterLyrics('song5', this.value)">
+    <br>
+    <button onclick="transpose('song5', 1)">Transpose Up</button>
+    <button onclick="transpose('song5', -1)">Transpose Down</button>
+    <div class="lyrics">
+[<span class="chord">D</span>] Example lyric line  
+[<span class="chord">A</span>] Another chord line
+    </div>
+  </div>
+
+  <script>
+    const chords = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+    function transpose(songId, step) {
+      const lyricsEl = document.querySelector(`#${songId} .lyrics`);
+      lyricsEl.innerHTML = lyricsEl.innerHTML.replace(/<span class="chord">(.*?)<\/span>/g, (match, chord) => {
+        let base = chord.replace(/m|maj7|sus4|dim|7/g,"");
+        let modifier = chord.slice(base.length);
+        let idx = chords.indexOf(base);
+        if (idx === -1) return chord;
+        let newIdx = (idx + step + chords.length) % chords.length;
+        return `<span class="chord">${chords[newIdx]}${modifier}</span>`;
+      });
+    }
+
+    function filterLyrics(songId, query) {
+      const lyricsEl = document.querySelector(`#${songId} .lyrics`);
+      const lines = lyricsEl.textContent.split("\n");
+      lyricsEl.innerHTML = lines
+        .filter(line => line.toLowerCase().includes(query.toLowerCase()))
+        .map(line => line.replace(/
+
+\[(.*?)\]
+
+/g, '<span class="chord">$1</span>'))
+        .join("\n");
+    }
+  </script>
+</body>
+</html>
